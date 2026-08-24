@@ -1,0 +1,13 @@
+services:
+  mountain-weather-logger:
+    build: .
+    container_name: mountain-weather-logger
+    restart: unless-stopped
+    environment:
+      MOUNTAIN_AREA: lake-district
+      CAPTURE_HOUR: "7"     # local container time — see README re: TZ
+      CAPTURE_MINUTE: "0"
+      LOG_LEVEL: INFO
+      TZ: Europe/London
+    volumes:
+      - ./data:/data

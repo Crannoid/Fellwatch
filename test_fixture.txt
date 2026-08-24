@@ -1,0 +1,65 @@
+Mountain Weather Forecast
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026. All Rights Reserved.
+Lake District National Park
+Forecast valid from 06:00 on Monday 24 Aug 2026 until 23:59 on Tuesday 25 Aug 2026
+Forecast Issued on Monday 24 Aug 2026 at 01:55
+Confidence: High becoming Medium in details on Tuesday and Low from Thursday.
+Headline for Monday 24 Aug 2026: Dry and bright. Some warm sunshine,
+Mountain weather hazards on Monday 24 Aug 2026
+Blizzards Heavy persistent snow Storm force winds
+No Likelihood No Likelihood No Likelihood
+Gales Severe chill effect Poor visibility
+No Likelihood No Likelihood No Likelihood
+Thunderstorms Heavy persistent rain Strong sunlight
+No Likelihood No Likelihood Medium Likelihood
+Weather and chance of precipitation at 800m
+Time
+06:00 09:00 12:00 15:00 18:00 21:00
+Sunny Sunny Sunny intervals Sunny intervals Sunny intervals Clear night
+Precipitation probability
+00% 00% 00% 00% 00% 00%
+Forecast for Monday 24 Aug 2026 2026-08-24
+Weather: Clear spells overnight with mist and fog patches possible in the valleys. Any mist and fog soon clearing to 
+leave a dry and bright day with warm sunny spells.
+Chance of cloud-free hill tops above 800m: 90%
+Low cloud and visibility: No significant low cloud expected. Visibility good or very good.
+Mountain Weather Forecast
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026. All Rights Reserved.
+Forecast for Monday 24 Aug 2026
+Height (m) Wind Speed mean/gusts (mph) Wind Direction (blowing from)
+06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 16/26 SE 16/21 SE 13/17 SE 15/19 SE 18/22 E 25/31 E 25/32 E
+600 25/37 S 19/25 SE 12/16 SE 13/17 SE 13/18 E 17/26 E 17/26 E
+300 8/18 S 10/17 SE 8/13 SE 7/15 SE 5/15 SE 5/19 E 4/19 E
+Valley 3/14 E 9/15 SE 7/12 SE 7/14 SE 5/13 E 6/17 E 6/16 NE
+Height (m) Temperature / Feels Like (°C)
+06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 11/8 10/7 11/9 12/9 11/8 9/5 8/4
+600 12/8 13/9 14/12 15/12 14/11 11/8 10/7
+300 12/11 16/14 18/16 18/17 16/16 13/12 11/11
+Valley 14/14 17/16 19/18 20/19 19/18 16/15 14/14
+Freezing Level* 2100m 2000m 2000m 2100m 2200m 2200m 2200m
+*Level above which ground is expected to be frozen/snow is expected to settle.
+Meteorologist’s View
+Nothing further to add.
+Forecast for Tuesday 25 Aug 2026 2026-08-25
+Weather: Mainly dry and bright with occasional sunny spells. Chance of the odd shower, mainly late in the day. 
+Freshening winds.
+Maximum wind: East or Southeast 15 to 20mph gusting 30mph.
+Chance of cloud-free hill tops above 800m: 80%
+Low cloud and visibility: Cloud near or above the summits. Visibility mainly good or very good, expect in early summit 
+cloud and rain.
+Temperature: Valleys: Plus 10 Celsius rising to 21 Celsius
+At 800m: Plus 6 to 12 Celsius
+Freezing level: Above the summits
+Mountain Weather Forecast
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026. All Rights Reserved.
+Ground Conditions Supplement
+No recent ground conditions report available.
+Issued at: 01:55 on Mon 24 Aug 2026
