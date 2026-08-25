@@ -1,7 +1,7 @@
 services:
-  mountain-weather-logger:
+  fellwatch:
     build: .
-    container_name: mountain-weather-logger
+    container_name: fellwatch
     restart: unless-stopped
     environment:
       MOUNTAIN_AREA: lake-district
