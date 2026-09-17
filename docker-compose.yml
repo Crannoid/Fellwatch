@@ -24,7 +24,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: changeme # change this before exposing beyond localhost
       TZ: Europe/London
     ports:
-      - "3000:3000"
+      - "3010:3000" # host:container — 3000 was already taken on containerHost; access Grafana at :3010
     volumes:
       - ./data:/data:ro # read-only: Grafana only ever reads this dataset, never writes it
       - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources:ro
