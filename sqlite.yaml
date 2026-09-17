@@ -1,0 +1,9 @@
+apiVersion: 1
+datasources:
+  - name: Fellwatch SQLite
+    type: frser-sqlite-datasource
+    access: proxy
+    isDefault: true
+    editable: true
+    jsonData:
+      path: /data/mountain_weather.sqlite3

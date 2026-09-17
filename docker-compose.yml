@@ -5,9 +5,30 @@ services:
     restart: unless-stopped
     environment:
       MOUNTAIN_AREA: lake-district
-      CAPTURE_HOUR: "7"     # local container time — see README re: TZ
+      CAPTURE_HOUR: "7" # local container time — see README re: TZ
       CAPTURE_MINUTE: "0"
       LOG_LEVEL: INFO
       TZ: Europe/London
     volumes:
       - ./data:/data
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: fellwatch-grafana
+    restart: unless-stopped
+    depends_on:
+      - fellwatch
+    environment:
+      GF_INSTALL_PLUGINS: frser-sqlite-datasource
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: changeme # change this before exposing beyond localhost
+      TZ: Europe/London
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data:ro # read-only: Grafana only ever reads this dataset, never writes it
+      - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-storage:/var/lib/grafana # Grafana's own settings/dashboards/users
+
+volumes:
+  grafana-storage:
