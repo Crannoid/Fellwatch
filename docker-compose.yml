@@ -8,6 +8,7 @@ services:
       CAPTURE_HOUR: "7" # local container time — see README re: TZ
       CAPTURE_MINUTE: "0"
       LOG_LEVEL: INFO
+      NOTIFY_URL: "https://ntfy.sh/fellwatch-k7x2m9qp" # e.g. https://ntfy.sh/your-topic — POSTed to on capture failures; blank disables
       TZ: Europe/London
     volumes:
       - ./data:/data
