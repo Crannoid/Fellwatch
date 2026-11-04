@@ -13,6 +13,7 @@ are logged and swallowed so one bad day doesn't kill the schedule.
 """
 
 import datetime
+import io
 import json
 import logging
 import os
@@ -24,7 +25,7 @@ from pathlib import Path
 import pdfplumber
 import requests
 
-PARSER_VERSION = "1.0.0"
+PARSER_VERSION = "1.1.0"
 
 AREA = os.environ.get("MOUNTAIN_AREA", "lake-district")
 PDF_URL = f"https://data.consumer-digital.api.metoffice.gov.uk/v1/mountain/{AREA}.pdf"
@@ -105,7 +106,7 @@ def extract_text(pdf_bytes: bytes, tmp_path: Path) -> str:
 # per field without losing the rest of the capture.
 
 def parse_issued(text: str):
-    m = re.search(r"Forecast Issued on ([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4}) at (\d{2}:\d{2})", text)
+    m = re.search(r"Forecast issued on ([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4}) at (\d{2}:\d{2})", text, re.I)
     return f"{m.group(1)} {m.group(2)}" if m else None
 
 
@@ -115,7 +116,9 @@ def parse_confidence(text: str):
 
 
 def parse_headline(text: str):
-    m = re.search(r"Headline for [^:]+:\s*(.+)", text)
+    # Older PDFs: "Headline for <date>: <text>" on one line; newer: no colon,
+    # headline on the following line.
+    m = re.search(r"Headline for [A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4}:?[ \t]*\n?(.+)", text)
     return m.group(1).strip() if m else None
 
 
@@ -147,8 +150,35 @@ def parse_hazards(text: str):
     return list(zip(names, likelihoods)) if len(names) == len(likelihoods) else []
 
 
-def parse_day1_weather_precip(text: str):
-    """Returns dict: time -> (weather_desc, precip_pct)."""
+def parse_weather_descs_by_position(pdf_bytes: bytes):
+    """Returns dict: time -> weather description, reading the 800m weather row
+    by x-position. Descriptions can wrap onto two lines ("Partly cloudy" /
+    "(night)") and the flattened text interleaves neighbouring cells, so each
+    word is assigned to the nearest time column instead."""
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        for page in pdf.pages:
+            words = page.extract_words()
+            hdr = next((i for i, w in enumerate(words) if w["text"] == "Time"), None)
+            if hdr is None:
+                continue
+            cols = [w for w in words[hdr + 1:hdr + 7] if re.fullmatch(r"\d{2}:\d{2}", w["text"])]
+            end = next((w for w in words[hdr:] if w["text"] == "Precipitation"), None)
+            if len(cols) != 6 or end is None:
+                continue
+            centres = [(c["x0"] + c["x1"]) / 2 for c in cols]
+            cells = {c["text"]: [] for c in cols}
+            for w in words:
+                if cols[0]["bottom"] <= w["top"] < end["top"]:
+                    mid = (w["x0"] + w["x1"]) / 2
+                    nearest = min(range(6), key=lambda i: abs(centres[i] - mid))
+                    cells[cols[nearest]["text"]].append(w)
+            return {t: " ".join(w["text"] for w in sorted(ws, key=lambda w: (round(w["top"]), w["x0"])))
+                    for t, ws in cells.items() if ws}
+    return {}
+
+
+def parse_day1_weather_precip(text: str, pdf_bytes: bytes = None):
+    """Returns dict: time -> {weather_desc, precip_pct}."""
     block = re.search(
         r"Weather and chance of precipitation at 800m.*?"
         r"(\d{2}:\d{2}(?:\s+\d{2}:\d{2}){5})\n(.+?)\nPrecipitation probability\n(.+?)\n",
@@ -161,32 +191,62 @@ def parse_day1_weather_precip(text: str):
     # weather descriptions are multi-word and space-separated with no fixed
     # delimiter; this greedy split works for the standard vocabulary but
     # verify against live output — see README.
-    weather_words = re.split(r"(?<=[a-z])\s(?=[A-Z])", weathers_line)
+    positional = parse_weather_descs_by_position(pdf_bytes) if pdf_bytes else {}
+    # The text-only split can't cope with descriptions wrapped over several
+    # lines, so it's only a fallback for the single-line layout.
+    weather_words = [] if "\n" in weathers_line else re.split(r"(?<=[a-z])\s(?=[A-Z])", weathers_line)
     precips = re.findall(r"\d{1,3}%", block.group(3))
     out = {}
     for i, t in enumerate(times):
         out[t] = {
-            "weather_desc": weather_words[i] if i < len(weather_words) else None,
+            "weather_desc": positional.get(t) or (weather_words[i] if i < len(weather_words) else None),
             "precip_pct": int(precips[i].rstrip("%")) if i < len(precips) else None,
         }
     return out
 
 
+# "Forecast for Monday 24 Aug 2026", optionally followed by an ISO date (older PDFs).
+FORECAST_FOR_RE = re.compile(r"Forecast for [A-Za-z]+ (\d{1,2}) ([A-Za-z]{3})[A-Za-z]* (\d{4})(?: (\d{4}-\d{2}-\d{2}))?")
+MONTH_NUMS = {m[:3].lower(): i for i, m in enumerate(MONTHS.split("|"), 1)}
+
+
+def _forecast_markers(text: str):
+    """[(iso_date, match), ...] for each 'Forecast for ...' heading, in page order."""
+    out = []
+    for m in FORECAST_FOR_RE.finditer(text):
+        iso = m.group(4) or f"{int(m.group(3)):04d}-{MONTH_NUMS[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
+        out.append((iso, m))
+    return out
+
+
 def parse_forecast_dates(text: str):
-    """Returns [(day_number, date_iso), ...] from the 'Forecast for <day> <iso>' lines."""
-    return re.findall(r"Forecast for [A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4} (\d{4}-\d{2}-\d{2})", text)
+    """Returns [day1_iso, day2_iso]. The day-1 heading is repeated above the
+    wind/temperature tables, so duplicates are dropped."""
+    dates = []
+    for iso, _ in _forecast_markers(text):
+        if iso not in dates:
+            dates.append(iso)
+    return dates
+
+
+def _cloud_free_pct(text: str):
+    """First percentage in the 'Chance of cloud-free hill tops above 800m' entry.
+    The label can wrap ("...hill\ntops above 800m:") and the value may be a
+    phrase like 'Around 75% until midday in east, otherwise close to 100%'."""
+    m = re.search(r"Chance of cloud-free hill(.*?)Low cloud and visibility", text, re.S)
+    pct = re.search(r"(\d+)%", m.group(1)) if m else None
+    return int(pct.group(1)) if pct else None
 
 
 def parse_day1_detail(text: str):
-    m_weather = re.search(r"Weather:\s*(.+?)\nChance of cloud-free hill tops", text, re.S)
-    m_cloud = re.search(r"Chance of cloud-free hill tops above 800m:\s*(\d+)%", text)
-    m_vis = re.search(r"Low cloud and visibility:\s*(.+?)\n", text)
+    m_weather = re.search(r"Weather:\s*(.+?)\nChance of cloud-free hill\s+tops", text, re.S)
+    m_vis = re.search(r"Low cloud and visibility:\s*(.+?)(?=\nCheck our weather|\nMountain Weather Forecast|\nTemperature:)", text, re.S)
     m_met = re.search(r"Meteorologist.s View\s*\n(.+?)\nForecast for", text, re.S)
     return {
         "weather_text": " ".join(m_weather.group(1).split()) if m_weather else None,
-        "cloud_free_pct": int(m_cloud.group(1)) if m_cloud else None,
-        "low_cloud_vis": m_vis.group(1).strip() if m_vis else None,
-        "meteorologist_view": m_met.group(1).strip() if m_met else None,
+        "cloud_free_pct": _cloud_free_pct(text),
+        "low_cloud_vis": " ".join(m_vis.group(1).split()) if m_vis else None,
+        "meteorologist_view": " ".join(m_met.group(1).split()) if m_met else None,
     }
 
 
@@ -226,7 +286,8 @@ def parse_temp_table(text: str):
         r"Temperature / Feels Like.*?\n"
         r"(\d{2}:\d{2}(?:\s+\d{2}:\d{2}){6})\n"
         r"((?:(?:900|600|300|Valley).+\n?){4})"
-        r"Freezing Level\*\s*(.+)\n",
+        # label is "Freezing Level*" on one line, or split around the values
+        r"Freezing(?:[ \t]+Level\*)?\s*((?:\d+m[ \t]*)+)",
         text,
     )
     if not m:
@@ -246,36 +307,40 @@ def parse_temp_table(text: str):
 
 
 def parse_day2(text: str):
-    # Isolate the block starting at the second "Forecast for <date> <iso>" marker
-    # first — "Weather:" and "Chance of cloud-free hill tops" also appear in the
-    # day-1 detail section, so searching the whole document risks matching there.
-    markers = list(re.finditer(r"Forecast for [A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4} \d{4}-\d{2}-\d{2}", text))
-    if len(markers) < 2:
+    # Isolate the block starting at the first "Forecast for <date>" heading whose
+    # date differs from day 1 — "Weather:" and "Chance of cloud-free hill tops" also
+    # appear in the day-1 detail section, so searching the whole document risks
+    # matching there.
+    markers = _forecast_markers(text)
+    day2 = next((m for iso, m in markers if iso != markers[0][0]), None) if markers else None
+    if day2 is None:
         return {}
-    day2_text = text[markers[1].end():]
+    day2_text = text[day2.end():]
 
-    m = re.search(
-        r"Weather:\s*(.+?)\nMaximum wind:\s*(.+?)\n"
-        r"Chance of cloud-free hill tops above 800m:\s*(\d+)%\n"
-        r"Low cloud and visibility:\s*(.+?)\n"
-        r"Temperature:\s*(.+?)\n(.+?)\nFreezing level:\s*(.+?)\n",
-        day2_text, re.S,
-    )
-    if not m:
+    def field(pattern):
+        m = re.search(pattern, day2_text, re.S)
+        return " ".join(m.group(1).split()) if m else None
+
+    # In the newer layout the freezing-level label is split: "Freezing <value>\nlevel:"
+    freezing = field(r"Freezing level:\s*(.+?)\n") or field(r"Freezing\s+(.+?)\s*\nlevel:")
+    weather = field(r"Weather:\s*(.+?)\nMaximum wind:")
+    if not (weather and freezing):
         return {}
     return {
-        "weather_text": " ".join(m.group(1).split()),
-        "max_wind_text": m.group(2).strip(),
-        "cloud_free_pct": int(m.group(3)),
-        "low_cloud_vis": " ".join(m.group(4).split()),
-        "temperature_text": " ".join((m.group(5) + " " + m.group(6)).split()),
-        "freezing_level_text": m.group(7).strip(),
+        "weather_text": weather,
+        "max_wind_text": field(r"Maximum wind:\s*(.+?)\nChance of cloud-free hill"),
+        "cloud_free_pct": _cloud_free_pct(day2_text),
+        "low_cloud_vis": field(r"Low cloud and visibility:\s*(.+?)\nTemperature:"),
+        "temperature_text": field(r"Temperature:\s*(.+?)\nFreezing"),
+        "freezing_level_text": freezing,
     }
 
 
 def parse_ground_conditions(text: str):
     m = re.search(r"Ground Conditions Supplement\s*\n(.+?)\nIssued at:", text, re.S)
-    return m.group(1).strip() if m else None
+    value = m.group(1).strip() if m else None
+    # The Met Office sometimes publishes the unfilled template placeholder.
+    return None if value and re.fullmatch(r"<<.*>>", value) else value
 
 
 # ---- orchestration --------------------------------------------------------
@@ -291,8 +356,22 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
 
     text = extract_text(pdf_bytes, DATA_DIR / "_tmp.pdf")
     raw_text_path = RAW_DIR / f"{AREA}-{stamp}.txt"
-    raw_text_path.write_text(text)
+    raw_text_path.write_text(text, encoding="utf-8")
 
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO captures (captured_at, area, source_url, parser_version, "
+        "raw_pdf_path, raw_text_path, parse_ok, parse_errors) VALUES (?,?,?,?,?,?,1,NULL)",
+        (now.isoformat(), AREA, PDF_URL, PARSER_VERSION, str(raw_pdf_path), str(raw_text_path)),
+    )
+    parse_and_store(conn, cur.lastrowid, text, pdf_bytes)
+
+
+def parse_and_store(conn: sqlite3.Connection, capture_id: int, text: str, pdf_bytes: bytes = None,
+                    quiet: bool = False) -> None:
+    """Parses one capture's text/PDF into the child tables and records the
+    outcome on its `captures` row. Also used by reparse.py to backfill (quiet=True
+    suppresses the failure notification). Safe to re-run: existing child rows are replaced."""
     errors = []
 
     def safe(label, fn, *args):
@@ -303,20 +382,23 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
             errors.append(label)
             return None
 
-    issued_at = safe("issued_at", parse_issued, text)
-    dates = parse_forecast_dates(text) or []  # [day1_date, day2_date]
+    def required(label, value):
+        # A parser that quietly returns nothing is the failure mode that went
+        # unnoticed when the Met Office changed the PDF layout — flag it.
+        if not value and label not in errors:
+            errors.append(label)
+        return value
 
     cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO captures (captured_at, issued_at, area, source_url, parser_version, "
-        "raw_pdf_path, raw_text_path, parse_ok, parse_errors) VALUES (?,?,?,?,?,?,?,1,NULL)",
-        (now.isoformat(), issued_at, AREA, PDF_URL, PARSER_VERSION,
-         str(raw_pdf_path), str(raw_text_path)),
-    )
-    capture_id = cur.lastrowid
+    for table in ("daily_summary", "hazards", "hourly_readings"):
+        cur.execute(f"DELETE FROM {table} WHERE capture_id=?", (capture_id,))
+    issued_at = required("issued_at", safe("issued_at", parse_issued, text))
+    dates = required("forecast_dates", safe("forecast_dates", parse_forecast_dates, text)) or []  # [day1_date, day2_date]
+    cur.execute("UPDATE captures SET issued_at=?, parser_version=? WHERE capture_id=?",
+                (issued_at, PARSER_VERSION, capture_id))
 
-    confidence = safe("confidence", parse_confidence, text)
-    headline = safe("headline", parse_headline, text)
+    confidence = required("confidence", safe("confidence", parse_confidence, text))
+    headline = required("headline", safe("headline", parse_headline, text))
     day1_detail = safe("day1_detail", parse_day1_detail, text) or {}
     ground = safe("ground_conditions", parse_ground_conditions, text)
 
@@ -331,7 +413,7 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
         )
 
     if len(dates) > 1:
-        day2 = safe("day2", parse_day2, text) or {}
+        day2 = required("day2", safe("day2", parse_day2, text)) or {}
         cur.execute(
             "INSERT INTO daily_summary (capture_id, forecast_date, forecast_day, weather_text, "
             "max_wind_text, cloud_free_pct, low_cloud_vis, freezing_level_text) "
@@ -340,7 +422,7 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
              day2.get("cloud_free_pct"), day2.get("low_cloud_vis"), day2.get("freezing_level_text")),
         )
 
-    hazards = safe("hazards", parse_hazards, text) or []
+    hazards = required("hazards", safe("hazards", parse_hazards, text)) or []
     for name, likelihood in hazards:
         if dates:
             cur.execute(
@@ -348,7 +430,7 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
                 (capture_id, dates[0], name, likelihood),
             )
 
-    weather_precip = safe("weather_precip", parse_day1_weather_precip, text) or {}
+    weather_precip = required("weather_precip", safe("weather_precip", parse_day1_weather_precip, text, pdf_bytes)) or {}
     if dates:
         for t, vals in weather_precip.items():
             fdt = f"{dates[0]}T{t}"
@@ -365,7 +447,7 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
                     (capture_id, fdt, "800m", "precip_chance_pct", vals["precip_pct"]),
                 )
 
-    wind_rows = safe("wind_table", parse_wind_table, text) or []
+    wind_rows = required("wind_table", safe("wind_table", parse_wind_table, text)) or []
     if dates:
         for altitude, t, mean_s, gust_s, direction in wind_rows:
             # the final 00:00 column belongs to the following calendar day
@@ -385,6 +467,7 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
             )
 
     temp_rows, freezing = safe("temp_table", parse_temp_table, text) or ([], [])
+    required("temp_table", temp_rows and freezing)
     if dates:
         for altitude, t, temp_c, feels_c in temp_rows:
             fdate = dates[1] if (t == "00:00" and len(dates) > 1) else dates[0]
@@ -409,9 +492,11 @@ def capture_and_store(conn: sqlite3.Connection) -> None:
         cur.execute("UPDATE captures SET parse_ok=0, parse_errors=? WHERE capture_id=?",
                     (json.dumps(errors), capture_id))
         log.warning("Capture %s stored with partial parse failures: %s", capture_id, errors)
-        notify(f"Fellwatch: partial parse ({AREA})",
-               f"Capture {capture_id} stored, but these fields failed to parse: {', '.join(errors)}")
+        if not quiet:
+            notify(f"Fellwatch: partial parse ({AREA})",
+                   f"Capture {capture_id} stored, but these fields failed to parse: {', '.join(errors)}")
     else:
+        cur.execute("UPDATE captures SET parse_ok=1, parse_errors=NULL WHERE capture_id=?", (capture_id,))
         log.info("Capture %s stored cleanly.", capture_id)
 
     conn.commit()
@@ -436,6 +521,7 @@ def main():
     try:
         capture_and_store(conn)
     except Exception as e:
+        conn.rollback()
         log.exception("Initial capture failed")
         notify(f"Fellwatch: capture failed ({AREA})", f"Initial capture failed: {type(e).__name__}: {e}")
 
@@ -447,6 +533,7 @@ def main():
         try:
             capture_and_store(conn)
         except Exception as e:
+            conn.rollback()
             log.exception("Scheduled capture failed — will retry next cycle")
             notify(f"Fellwatch: capture failed ({AREA})",
                    f"Scheduled capture failed: {type(e).__name__}: {e}. Next attempt tomorrow.")

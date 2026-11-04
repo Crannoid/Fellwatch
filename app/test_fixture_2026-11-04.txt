@@ -1,0 +1,79 @@
+Mountain Weather Forecast
+Lake District National Park
+Forecast valid from 06:00 on Wednesday 04 Nov 2026 until 23:59 on Wednesday 04 Nov 2026
+Forecast issued on Wednesday 04 Nov 2026 at 02:24
+Confidence: High for a mainly settled easterly airstream through the coming days but lower for cloud amounts and the
+possibility of outbreaks of rain spreading north over the weekend.
+Headline for Wednesday 04 Nov 2026
+Mainly dry with sunny spells. Occasionally strong northeasterly winds
+Mountain weather hazards on Wednesday 04 Nov 2026
+Blizzards Heavy persistent snow Storm force winds
+No Likelihood No Likelihood No Likelihood
+Gales Severe chill effect Poor visibility
+No Likelihood Low Likelihood Low Likelihood
+Thunderstorms Heavy persistent rain Strong sunlight
+No Likelihood No Likelihood No Likelihood
+Weather and chance of precipitation at 800m
+Time
+06:00 09:00 12:00 15:00 18:00 21:00
+Partly cloudy Partly cloudy
+Sunny intervals Sunny intervals Sunny intervals Sunny intervals
+(night) (night)
+Precipitation probability
+00% 00% 00% 00% 00% 00%
+Forecast for Wednesday 04 Nov 2026
+Weather: A few showers in the east, otherwise dry with some clear or sunny spells, the best of these across western
+fells. Becoming dry through the evening.
+Chance of cloud-free hill
+tops above 800m: Around 75% until midday in east, otherwise close to 100%
+Low cloud and visibility: Occasional cloud above about 600-750m until midday in east, with little or no cloud
+expected below the summits from early afternoon. Away from cloud visibility very good,
+falling briefly in showers
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
+Mountain Weather Forecast
+Forecast for Wednesday 04 Nov 2026
+Height (m) Wind Speed mean/gusts (mph) Wind Direction (blowing from)
+06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 25/30 E 22/27 E 26/31 E 24/29 NE 31/37 NE 30/36 NE 31/37 NE
+600 15/21 E 14/20 E 14/19 E 15/21 NE 19/27 NE 17/24 NE 18/24 NE
+300 6/18 NE 7/18 NE 4/15 E 4/16 NE 3/19 E 3/16 NE 3/16 NE
+Valley 10/22 NE 10/19 NE 7/17 NE 7/18 NE 6/19 NE 5/16 NE 6/18 NE
+Height (m) Temperature / Feels Like (°C)
+06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 2/-4 3/-2 4/-2 4/-2 3/-4 3/-4 2/-5
+600 4/-1 5/0 6/2 6/2 5/1 5/-0 4/-1
+300 5/3 7/5 9/8 9/8 7/6 6/5 6/4
+Valley 8/5 9/7 11/10 11/10 10/8 9/8 8/7
+Freezing
+1400m 1500m 1500m 1500m 1300m 1200m 1200m
+Level*
+*Level above which ground is expected to be frozen/snow is expected to settle.
+Meteorologist’s View
+Significant chill effect over the summits, winds increasing to give gusts around 40mph over ridges and summits in late
+afternoon and evening.
+Forecast for Thursday 05 Nov 2026
+Weather: Rather cloudy with further showers expected, again mainly across eastern fells, with the best of any
+clearer or sunnier spells in the west.
+Maximum wind: Easterly or northeasterly 20-25mph, gusts around 40mph over ridges and summits, with a significant
+chill effect.
+Chance of cloud-free hill Around 60%, mainly over eastern fells especially through the morning, otherwise close to
+tops above 800m: 100%
+Low cloud and visibility: Occasional or periods of cloud above about 600-750m, mainly over eastern fells through
+the morning, otherwise little or no cloud below the summits. Away from cloud visibility very
+good falling briefly in showers.
+Temperature: Valleys: Around plus 4 or 5 Celsius at dawn rising to plus 11 or 12 Celsius by day
+At 800m: Around plus 3 or 4 Celsius
+Freezing Just above the summits.
+level:
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
+Mountain Weather Forecast
+Ground Conditions Supplement
+<<GROUND_CONDITIONS>>
+Issued at: 02:24 on Wed 04 Nov 2026
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
