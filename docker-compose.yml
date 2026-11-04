@@ -8,7 +8,7 @@ services:
       CAPTURE_HOUR: "7" # local container time — see README re: TZ
       CAPTURE_MINUTE: "0"
       LOG_LEVEL: INFO
-      NOTIFY_URL: "https://ntfy.sh/fellwatch-k7x2m9qp" # e.g. https://ntfy.sh/your-topic — POSTed to on capture failures; blank disables
+      NOTIFY_URL: "${NOTIFY_URL:-}" # set in .env (gitignored); ntfy-style URL POSTed to on capture failures; blank disables
       TZ: Europe/London
     volumes:
       - ${FELLWATCH_DATA:-./data}:/data
@@ -21,8 +21,6 @@ services:
       - fellwatch
     environment:
       GF_INSTALL_PLUGINS: frser-sqlite-datasource
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: changeme # change this before exposing beyond localhost
       TZ: Europe/London
     ports:
       - "3010:3000" # host:container — 3000 was already taken on containerHost; access Grafana at :3010
