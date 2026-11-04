@@ -1,0 +1,72 @@
+Mountain Weather Forecast
+Lake District National Park
+Forecast valid from 06:00 on Friday 02 Oct 2026 until 23:59 on Friday 02 Oct 2026
+Forecast issued on Friday 02 Oct 2026 at 02:01
+Confidence: High for Friday. Low for cloud cover detail from Saturday onwards.
+Headline for Friday 02 Oct 2026
+Cloudy and windy with rain, heavy at times
+Mountain weather hazards on Friday 02 Oct 2026
+Blizzards Heavy persistent snow Storm force winds
+No Likelihood No Likelihood No Likelihood
+Gales Severe chill effect Poor visibility
+High Likelihood No Likelihood High Likelihood
+Thunderstorms Heavy persistent rain Strong sunlight
+Low Likelihood Medium Likelihood No Likelihood
+Weather and chance of precipitation at 800m
+Time
+06:00 09:00 12:00 15:00 18:00 21:00
+Light rain Heavy Rain Heavy Rain Heavy Rain Heavy Rain Heavy Rain
+Precipitation probability
+80% 90% 80% 60% 80% >95%
+Forecast for Friday 02 Oct 2026
+Weather: A cloudy day with spells of rain, some of this will be heavy at times. Some drier spells of weather may
+develop early afternoon. Rain will start to clear from the west in late evening.
+Chance of cloud-free hill
+tops above 800m: Little chance, highest bases across the Eastern Fells
+Low cloud and visibility: Poor in extensive cloud down to 400 to 700 metres, and as low as 200 metres over
+upslopes across Western Fells.
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
+Mountain Weather Forecast
+Forecast for Friday 02 Oct 2026
+Height (m) Wind Speed mean/gusts (mph) Wind Direction (blowing from)
+06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 39/46 S 38/46 S 42/52 SW 49/60 SW 52/64 SW 28/35 SW 21/26 W
+600 29/38 S 30/40 S 34/46 SW 41/55 SW 41/56 SW 21/29 SW 18/26 W
+300 8/27 S 11/30 S 13/35 S 16/42 SW 15/42 S 9/26 SW 6/21 W
+Valley 9/27 S 12/30 S 14/34 S 16/39 SW 17/42 SW 9/23 W 7/21 W
+Height (m) Temperature / Feels Like (°C)
+06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 9/3 9/4 10/4 10/4 10/4 9/4 6/2
+600 10/6 11/6 12/6 12/6 11/6 11/7 9/5
+300 12/11 12/10 13/11 14/11 13/11 13/11 10/9
+Valley 14/13 14/13 15/13 16/13 15/12 14/13 13/12
+Freezing
+2300m 2500m 2500m 2600m 2600m 2500m 1700m
+Level*
+*Level above which ground is expected to be frozen/snow is expected to settle.
+Meteorologist’s View
+Strong to gale force winds on the summits will make for slow progress and a risk of being blown over. Persistent heavy
+rain will lead to some swollen watercourses as the day progresses. Heavy rain and strong winds will lead to drenching
+conditions and a chilling effect.
+Forecast for Saturday 03 Oct 2026
+Weather: A ridge of high pressure will bring a fine and dry day with some good spells of sunshine.
+Maximum wind: Southwesterly 15 mph
+Chance of cloud-free hill
+tops above 800m: 90%
+Low cloud and visibility: Summits clear with any cloud above the summits and excellent visibilities.
+Temperature: Valleys: Plus 6 rising to 15 Celsius
+At 800m: Plus 8 Celsius
+Freezing Above the summits
+level:
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
+Mountain Weather Forecast
+Ground Conditions Supplement
+<<GROUND_CONDITIONS>>
+Issued at: 02:01 on Fri 02 Oct 2026
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
