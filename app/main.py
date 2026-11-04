@@ -25,7 +25,7 @@ from pathlib import Path
 import pdfplumber
 import requests
 
-PARSER_VERSION = "1.1.0"
+PARSER_VERSION = "1.2.0"
 
 AREA = os.environ.get("MOUNTAIN_AREA", "lake-district")
 PDF_URL = f"https://data.consumer-digital.api.metoffice.gov.uk/v1/mountain/{AREA}.pdf"
@@ -161,16 +161,20 @@ def parse_weather_descs_by_position(pdf_bytes: bytes):
             hdr = next((i for i, w in enumerate(words) if w["text"] == "Time"), None)
             if hdr is None:
                 continue
-            cols = [w for w in words[hdr + 1:hdr + 7] if re.fullmatch(r"\d{2}:\d{2}", w["text"])]
+            cols = []
+            for w in words[hdr + 1:]:
+                if not re.fullmatch(r"\d{2}:\d{2}", w["text"]):
+                    break
+                cols.append(w)
             end = next((w for w in words[hdr:] if w["text"] == "Precipitation"), None)
-            if len(cols) != 6 or end is None:
+            if len(cols) < 2 or end is None:
                 continue
             centres = [(c["x0"] + c["x1"]) / 2 for c in cols]
             cells = {c["text"]: [] for c in cols}
             for w in words:
                 if cols[0]["bottom"] <= w["top"] < end["top"]:
                     mid = (w["x0"] + w["x1"]) / 2
-                    nearest = min(range(6), key=lambda i: abs(centres[i] - mid))
+                    nearest = min(range(len(cols)), key=lambda i: abs(centres[i] - mid))
                     cells[cols[nearest]["text"]].append(w)
             return {t: " ".join(w["text"] for w in sorted(ws, key=lambda w: (round(w["top"]), w["x0"])))
                     for t, ws in cells.items() if ws}
@@ -181,7 +185,7 @@ def parse_day1_weather_precip(text: str, pdf_bytes: bytes = None):
     """Returns dict: time -> {weather_desc, precip_pct}."""
     block = re.search(
         r"Weather and chance of precipitation at 800m.*?"
-        r"(\d{2}:\d{2}(?:\s+\d{2}:\d{2}){5})\n(.+?)\nPrecipitation probability\n(.+?)\n",
+        r"\n(\d{2}:\d{2}(?:[ \t]+\d{2}:\d{2})+)[ \t]*\n(.+?)\nPrecipitation probability\n(.+?)\n",
         text, re.S,
     )
     if not block:
@@ -250,41 +254,64 @@ def parse_day1_detail(text: str):
     }
 
 
+TIMES_LINE = r"(\d{2}:\d{2}(?:[ \t]+\d{2}:\d{2})+)[ \t]*\n"
+
+
+def _day_offsets(times):
+    """Day offset (0 = day 1, 1 = day 2) for each time column. The table may
+    start at 00:00 and end on the next day's 00:00, so a time that goes
+    backwards marks the rollover."""
+    offsets, day, prev = [], 0, None
+    for t in times:
+        if prev is not None and t < prev:
+            day += 1
+        offsets.append(day)
+        prev = t
+    return offsets
+
+
 def parse_wind_table(text: str):
-    """Returns list of (altitude, time_index, mean_mph, gust_mph, direction)."""
+    """Returns list of (altitude, time, mean_mph, gust_mph, direction, day_offset)."""
     m = re.search(
-        r"Wind Speed mean/gusts \(mph\) Wind Direction.*?\n"
-        r"(\d{2}:\d{2}(?:\s+\d{2}:\d{2}){6})\n"
-        r"((?:(?:900|600|300|Valley).+\n?){4})",
-        text,
+        r"Wind Speed mean/gusts \(mph\) Wind Direction[^\n]*\n" + TIMES_LINE +
+        r"(.*?)(?=Height \(m\)|Meteorologist)",
+        text, re.S,
     )
     if not m:
         return []
     times = m.group(1).split()
+    days = _day_offsets(times)
+    lines = [l.split() for l in m.group(2).strip().splitlines() if l.strip()]
+    is_speed = lambda tok: re.fullmatch(r"\d+/\d+", tok)
     rows = []
-    for line in m.group(2).strip().splitlines():
-        parts = line.split()
-        altitude = parts[0]
-        rest = parts[1:]
+    for i, parts in enumerate(lines):
+        if parts[0] not in ALTITUDES:
+            continue
         # each timepoint is "mean/gust" then "DIR" e.g. "16/26 SE"
-        readings = []
-        i = 0
-        while i < len(rest) - 1:
-            speed_gust, direction = rest[i], rest[i + 1]
+        rest = parts[1:]
+        readings = [(rest[j], rest[j + 1]) for j in range(0, len(rest) - 1, 2)]
+        missing = len(times) - len(readings)
+        if missing:
+            # The last columns can wrap: their speeds on the line above the
+            # row and their directions on the line below it.
+            pre = lines[i - 1] if i > 0 and all(is_speed(t) for t in lines[i - 1]) else []
+            nxt = lines[i + 1] if i + 1 < len(lines) else []
+            post = nxt if nxt and not any(is_speed(t) for t in nxt) and nxt[0] not in ALTITUDES else []
+            if len(pre) != missing or len(post) != missing:
+                raise ValueError(f"wind row {parts[0]}: {len(readings)} of {len(times)} readings found")
+            readings += list(zip(pre, post))
+        for t, day, (speed_gust, direction) in zip(times, days, readings):
             mean_s, gust_s = speed_gust.split("/")
-            readings.append((int(mean_s), int(gust_s), direction))
-            i += 2
-        for t, (mean_s, gust_s, direction) in zip(times, readings):
-            rows.append((altitude, t, mean_s, gust_s, direction))
+            rows.append((parts[0], t, int(mean_s), int(gust_s), direction, day))
     return rows
 
 
 def parse_temp_table(text: str):
     """Returns (rows, freezing_levels) where rows = list of
-    (altitude, time, temp_c, feels_like_c) and freezing_levels = list of (time, metres)."""
+    (altitude, time, temp_c, feels_like_c, day_offset) and
+    freezing_levels = list of (time, metres, day_offset)."""
     m = re.search(
-        r"Temperature / Feels Like.*?\n"
-        r"(\d{2}:\d{2}(?:\s+\d{2}:\d{2}){6})\n"
+        r"Temperature / Feels Like[^\n]*\n" + TIMES_LINE +
         r"((?:(?:900|600|300|Valley).+\n?){4})"
         # label is "Freezing Level*" on one line, or split around the values
         r"Freezing(?:[ \t]+Level\*)?\s*((?:\d+m[ \t]*)+)",
@@ -293,16 +320,21 @@ def parse_temp_table(text: str):
     if not m:
         return [], []
     times = m.group(1).split()
+    days = _day_offsets(times)
     rows = []
     for line in m.group(2).strip().splitlines():
         parts = line.split()
         altitude = parts[0]
         pairs = parts[1:]
-        for t, pair in zip(times, pairs):
+        if len(pairs) != len(times):
+            raise ValueError(f"temperature row {altitude}: {len(pairs)} of {len(times)} readings found")
+        for t, day, pair in zip(times, days, pairs):
             temp_s, feels_s = pair.split("/")
-            rows.append((altitude, t, int(temp_s), int(feels_s)))
-    fz_values = re.findall(r"(\d+)m", m.group(3))
-    freezing = list(zip(times, [int(v) for v in fz_values]))
+            rows.append((altitude, t, int(temp_s), int(feels_s), day))
+    fz_values = [int(v) for v in re.findall(r"(\d+)m", m.group(3))]
+    if len(fz_values) != len(times):
+        raise ValueError(f"freezing level: {len(fz_values)} of {len(times)} values found")
+    freezing = list(zip(times, fz_values, days))
     return rows, freezing
 
 
@@ -449,9 +481,9 @@ def parse_and_store(conn: sqlite3.Connection, capture_id: int, text: str, pdf_by
 
     wind_rows = required("wind_table", safe("wind_table", parse_wind_table, text)) or []
     if dates:
-        for altitude, t, mean_s, gust_s, direction in wind_rows:
-            # the final 00:00 column belongs to the following calendar day
-            fdate = dates[1] if (t == "00:00" and len(dates) > 1) else dates[0]
+        for altitude, t, mean_s, gust_s, direction, day in wind_rows:
+            # a trailing 00:00 column belongs to the following calendar day
+            fdate = dates[min(day, len(dates) - 1)]
             fdt = f"{fdate}T{t}"
             alt_label = "valley" if altitude.lower() == "valley" else f"{altitude}m"
             for metric, val in (("wind_speed_mph", mean_s), ("wind_gust_mph", gust_s)):
@@ -469,8 +501,8 @@ def parse_and_store(conn: sqlite3.Connection, capture_id: int, text: str, pdf_by
     temp_rows, freezing = safe("temp_table", parse_temp_table, text) or ([], [])
     required("temp_table", temp_rows and freezing)
     if dates:
-        for altitude, t, temp_c, feels_c in temp_rows:
-            fdate = dates[1] if (t == "00:00" and len(dates) > 1) else dates[0]
+        for altitude, t, temp_c, feels_c, day in temp_rows:
+            fdate = dates[min(day, len(dates) - 1)]
             fdt = f"{fdate}T{t}"
             alt_label = "valley" if altitude.lower() == "valley" else f"{altitude}m"
             for metric, val in (("temperature_c", temp_c), ("feels_like_c", feels_c)):
@@ -479,8 +511,8 @@ def parse_and_store(conn: sqlite3.Connection, capture_id: int, text: str, pdf_by
                     "VALUES (?,?,?,?,?)",
                     (capture_id, fdt, alt_label, metric, val),
                 )
-        for t, metres in freezing:
-            fdate = dates[1] if (t == "00:00" and len(dates) > 1) else dates[0]
+        for t, metres, day in freezing:
+            fdate = dates[min(day, len(dates) - 1)]
             fdt = f"{fdate}T{t}"
             cur.execute(
                 "INSERT INTO hourly_readings (capture_id, forecast_time, altitude, metric, value_numeric) "

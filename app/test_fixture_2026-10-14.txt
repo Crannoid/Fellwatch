@@ -1,0 +1,87 @@
+Mountain Weather Forecast
+Lake District National Park
+Forecast valid from 00:00 on Wednesday 14 Oct 2026 until 23:59 on Thursday 15 Oct 2026
+Forecast issued on Tuesday 13 Oct 2026 at 10:59
+Confidence: High for the general weather story over the next few days. The main forecasting uncertainty is for the
+timing of rain clearing on Thursday.
+Headline for Wednesday 14 Oct 2026
+Very strong winds, becoming storm force on the tops. Mainly dry and cloudy.
+Mountain weather hazards on Wednesday 14 Oct 2026
+Blizzards Heavy persistent snow Storm force winds
+No Likelihood No Likelihood Low Likelihood
+Gales Severe chill effect Poor visibility
+High Likelihood No Likelihood No Likelihood
+Thunderstorms Heavy persistent rain Strong sunlight
+No Likelihood No Likelihood No Likelihood
+Weather and chance of precipitation at 800m
+Time
+00:00 03:00 06:00 09:00 12:00 15:00 18:00 21:00
+Partly cloudy Partly cloudy Partly cloudy Sunny
+Cloudy Light rain Dull Cloudy
+(night) (night) (night) intervals
+Precipitation probability
+<05% <05% <05% 10% 20% 50% 30% 30%
+Forecast for Wednesday 14 Oct 2026
+Weather: Dry with clear spells overnight. A bright start then becoming cloudy with occasional light rain in the afternoon
+and evening. Difficult walking conditions with very strong and gusty winds.
+Chance of cloud-free hill
+tops above 800m: 80%
+Low cloud and visibility: Mainly good visibility. Patchy cloud above 500m at first, mainly in the south and west, this
+lifting off the tops by afternoon.
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
+Mountain Weather Forecast
+Forecast for Wednesday 14 Oct 2026
+Height (m) Wind Speed mean/gusts (mph) Wind Direction (blowing from)
+00:00 03:00 06:00 09:00 12:00 15:00 18:00 21:00 00:00
+44/59 42/58
+900 20/24 SW 22/28 SW 30/39 SW 35/46 S 39/52 SW 42/57 SW 43/59 SW
+SW SW
+36/53 35/52
+600 16/23 SW 17/25 SW 25/38 SW 30/43 S 34/48 SW 35/51 S 36/52 SW
+SW SW
+18/44 19/43
+300 5/18 SW 5/20 SW 10/29 S 15/35 S 17/39 S 18/42 S 18/43 SW
+SW SW
+21/41 23/42
+Valley 6/18 SW 7/19 SW 11/28 SW 17/33 S 19/37 S 20/39 S 22/42 SW
+SW SW
+Height (m) Temperature / Feels Like (°C)
+00:00 03:00 06:00 09:00 12:00 15:00 18:00 21:00 00:00
+900 4/-0 5/-0 6/-0 7/1 7/2 8/2 8/2 8/2 8/2
+600 7/3 7/3 8/3 9/4 10/5 10/5 10/5 10/5 10/5
+300 8/7 9/8 10/8 11/9 12/9 12/9 12/9 12/9 12/9
+Valley 12/11 12/11 13/11 14/11 15/12 15/12 15/11 15/11 15/11
+Freezing
+1400m 1500m 1900m 2700m 2200m 2300m 2300m 2700m 2500m
+Level*
+*Level above which ground is expected to be frozen/snow is expected to settle.
+Meteorologist’s View
+The strong south or southwest winds will be the main feature. Gusts of 60 to 70mph on high ridges and summits will
+make walking very difficult with a high risk of being blown over.
+Forecast for Thursday 15 Oct 2026
+Weather: Rain arriving overnight, this becoming persistent and heavy at times and continuing through the
+morning. Becoming dry sometime during the afternoon with clear spells later. Southwesterly severe
+gales slowly easing.
+Maximum wind: Southwest 40-50mph gusts 70mph at first, easing to 30mph gusts 40mph by afternoon, then
+decreasing later.
+Chance of cloud-free hill
+tops above 800m: 10% becoming 70% in afternoon.
+Low cloud and visibility: Visibility often poor in the rain with extensive cloud, bases 500 to 700m. This slowly lifting in
+the afternoon with visibility becoming good.
+Temperature: Valleys: Plus 14 or 15C.
+At Plus 8 or 9C.
+800m:
+Freezing Above summits.
+level:
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
+Mountain Weather Forecast
+Ground Conditions Supplement
+<<GROUND_CONDITIONS>>
+Issued at: 10:59 on Tue 13 Oct 2026
+Check our weather forecast every day to get the most accurate and up to date information
+https://www.metoffice.gov.uk/weather/specialist-forecasts/mountain
+© Crown Copyright 2026, Met Office
