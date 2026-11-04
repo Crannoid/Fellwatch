@@ -11,7 +11,7 @@ services:
       NOTIFY_URL: "https://ntfy.sh/fellwatch-k7x2m9qp" # e.g. https://ntfy.sh/your-topic — POSTed to on capture failures; blank disables
       TZ: Europe/London
     volumes:
-      - ./data:/data
+      - ${FELLWATCH_DATA:-./data}:/data
 
   grafana:
     image: grafana/grafana:11.3.0
@@ -27,7 +27,7 @@ services:
     ports:
       - "3010:3000" # host:container — 3000 was already taken on containerHost; access Grafana at :3010
     volumes:
-      - ./data:/data:ro # read-only: Grafana only ever reads this dataset, never writes it
+      - ${FELLWATCH_DATA:-./data}:/data:ro # read-only: Grafana only ever reads this dataset, never writes it
       - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - grafana-storage:/var/lib/grafana # Grafana's own settings/dashboards/users
 

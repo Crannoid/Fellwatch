@@ -49,12 +49,20 @@ services:
     container_name: fellwatch
     restart: unless-stopped
     volumes:
-      - ./data:/data     # host ./data <-> container /data — this is the persistence
+      - ${FELLWATCH_DATA:-./data}:/data   # host data dir <-> container /data — this is the persistence
 ```
 
-`./data` is created automatically on first run, relative to wherever you run
-`docker compose up` from (i.e. `fellwatch/data` if you followed the clone
-step above). This is a **bind mount**, not a named Docker volume — deliberate,
+The host data directory comes from `FELLWATCH_DATA`. Source code lives in the
+git clone (`~/Source/Fellwatch`) while runtime data lives separately in
+`~/Docker/Fellwatch/data`, so copy `.env.example` to `.env` (gitignored) and set
+an absolute path:
+
+```bash
+cp .env.example .env   # then edit FELLWATCH_DATA if your path differs
+```
+
+If `FELLWATCH_DATA` is unset it falls back to `./data` inside the clone. This
+is a **bind mount**, not a named Docker volume — deliberate,
 so the SQLite file and raw archive show up as ordinary files on the
 containerHost filesystem for easy backup, inspection, or `sqlite3` access
 without going through Docker at all.
@@ -89,18 +97,18 @@ After the first capture (it runs one immediately on startup), confirm data
 landed on the host side, not just inside the container:
 
 ```bash
-ls ./data/raw/                          # should show today's .pdf and .txt
-sqlite3 ./data/mountain_weather.sqlite3 "SELECT COUNT(*) FROM captures;"
+ls "$FELLWATCH_DATA"/raw/                          # should show today's .pdf and .txt
+sqlite3 "$FELLWATCH_DATA"/mountain_weather.sqlite3 "SELECT COUNT(*) FROM captures;"
 ```
 
-If `./data` is empty but `docker logs fellwatch` shows a successful capture,
+If the data directory is empty but `docker logs fellwatch` shows a successful capture,
 the mount path is wrong rather than the app — check the volume line matches
 where you're actually looking on the host.
 
-`./data/mountain_weather.sqlite3` is the whole dataset; `./data/raw/` will
+`$FELLWATCH_DATA/mountain_weather.sqlite3` is the whole dataset; `$FELLWATCH_DATA/raw/` will
 grow by roughly two small files a day (a PDF and a text extract), worth an
 occasional check on disk usage over a few years but not a real concern at
-this scale. Back up `./data` like anything else on containerHost — it's the
+this scale. Back up `$FELLWATCH_DATA` like anything else on containerHost — it's the
 only copy.
 
 ## Config (environment variables)
